@@ -61,21 +61,21 @@ wget https://qemu.org
 tar -xf qemu-10.0.3.tar.xz
 cd qemu-10.0.3
 
-# Create an isolated build directory
+ Create an isolated build directory
 mkdir build
 cd build
 
-# Configure the build system (Enables KVM acceleration)
+Configure the build system (Enables KVM acceleration)
 ../configure --prefix=/usr \
              --sysconfdir=/etc \
              --localstatedir=/var \
              --docdir=/usr/share/doc/qemu-10.0.3 \
              --enable-kvm
 
-# Compile using all available CPU cores
+ Compile using all available CPU cores
 make
-Wees voorzichtig met code.Once the compilation completes successfully, switch to the root user to install it:bashsudo make install
-Wees voorzichtig met code.3. Activating Permissions (KVM Group)LFS relies on standard kernel structures. To make sure your user profile can utilize hardware virtualization without typing sudo every time, configure permissions for the KVM device node:bash# Ensure the kvm group exists and append your username
+Once the compilation completes successfully, switch to the root user to install it:bashsudo make install
+3. Activating Permissions (KVM Group)LFS relies on standard kernel structures. To make sure your user profile can utilize hardware virtualization without typing sudo every time, configure permissions for the KVM device node:bash# Ensure the kvm group exists and append your username
 sudo groupadd -f kvm
 sudo usermod -a -G kvm <your_lfs_username>
 
