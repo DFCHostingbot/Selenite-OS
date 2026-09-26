@@ -4,9 +4,14 @@ A Homemade OS! Made by Dani! (note we are still in beta 0.8 so please expect us 
 
 The minimal expected specs and recommended specs. (not sure)
 
-CPU AMD X86_64 CPU (we will do intel later)
-GPU idk just intergraded i guess. AMD ONLY! intel arc series or nvidia will do later (nvidia prolly not but if they are open source then yes)
-RAM 1gb DDR3 minimum recommended is 4GB DDR4 2133
+UPDATED. AMD INTEL nor NVIDIA or any other chinese x86 cpus will NOT be supported. (not recommended due to drivers as of cpu. some does but it will do very slow works like cpu render.)
+Consider using an official ARM64 CPU. (the allwinner A733 8 core is recommended due to build focusing on this type of cpu.) note the cpu is only for orange pi 4 pro (due to having like idk like zero projects nor community) so if you have a raspberry pi. You have like enough support. only the old one have the x86 support.
+
+# For the raxda users
+
+It will not be supported even if you have some Radxa Cubie A7A. You can but some drivers wont work.
+
+# Tutorial on how to install. for older iso (x86) or newer arm 64 in every distro known to mankind (somehow)
 
 Any question? Ask me! The ISO is for QEMU purposes only! Please dont install on your pc nor doing it on your pc for fun. Its only for qemu. also serial is needed or else you will only see the uefi screen (tiano core) thats why you cannot use it if you wanna ask.
 
@@ -80,3 +85,11 @@ sudo groupadd -f kvm
 sudo usermod -a -G kvm <your_lfs_username>
 
 okay thats it i dont wanna do more haha
+
+# for bedrock linux
+
+use anything above bro you have everything.
+
+thanks for reading have a fun time!
+
+DFCHOSTING BOT
