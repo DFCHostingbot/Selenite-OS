@@ -1,95 +1,117 @@
-# Selenite-OS
-A Homemade OS! Made by Dani! (note we are still in beta 0.8 so please expect us to be done from 18 october to like idk 4 years after. Oh yeah everything is open source! 
+<div align="center">
+
+# 📱 SelenyxOS
+
+**A custom mobile operating system for Selenyx 1**
+
+[![Build Status](https://img.shields.io/badge/build-scaffold-blue)]()
+[![License](https://img.shields.io/badge/license-Proprietary%20%2B%20GPL--2.0-orange)]()
+[![Platform](https://img.shields.io/badge/platform-ARM64-green)]()
+[![QEMU](https://img.shields.io/badge/emulation-QEMU%20virt-yellow)]()
+
+</div>
+
+> ⚠️ **SelenyxOS does not use the Linux kernel.**
+> The kernel is a fully custom kernel named **selenyx-kernel**. Linux-derived code is allowed *only* for selected drivers under `drivers/linux/`, executed through a Selenyx-native compatibility layer called **lxcompat**.
+
+---
+
+## 🎯 First Milestone
+
+Minimal QEMU-bootable ARM64 system with:
+- Simple phone shell
+- USB 4G dongle detection and usage
+- Linux-derived drivers via lxcompat
+
+---
+
+## 🖥️ Target Hardware
+
+| Component | Specification |
+|-----------|---------------|
+| Device | Selenyx 1 |
+| Kernel | selenyx-kernel (custom, non-Linux) |
+| SoC | Allwinner A733 |
+| CPU | ARM64 (QEMU `virt` first) |
+| RAM | 6 GB LPDDR5 4800 MHz |
+| Display | 5″ 960×600 @ 60 Hz |
+| Camera | 12 MP single rear |
+| Connectivity | External USB 4G dongle |
+| GPU | Selenyx 8 3700x1d3 (custom) |
+| Input | Touchscreen, power, volume |
+| Storage | eMMC / SD |
+
+> 💡 Custom GPU is not emulated in QEMU. Virtual framebuffer is used initially.
+
+---
+
+## 🏗️ Architecture Policy
+
+### Custom Kernel (`kernel/`)
+ARM64 boot, scheduler, MM, IPC, VFS+devfs, framebuffer console, input, USB host stack, network stack, driver manager, native drivers. **No Linux kernel core.**
+
+### Linux Driver Compatibility Layer (`lxcompat/`)
+Selenyx-native reimplementation of Linux-style APIs. NOT Linux code. Enables minimal adaptation of real Linux driver sources.
+
+**APIs provided:**
+- Memory: `kmalloc`/`kfree`/`kzalloc`
+- Sync: spinlocks, mutexes, wait queues
+- Async: workqueues, timers, kthreads
+- Core: `printk`, module init/exit, device model
+- Subsystems: USB core, `net_device`, TTY/serial, firmware stubs
+
+### Driver Policy (`drivers/`)
+| Directory | Contents |
+|-----------|----------|
+| `drivers/linux/` | Adapted Linux drivers only |
+| `drivers/selenyx/` | Native Selenyx drivers |
+
+### Userspace (`userspace/`)
+| Component | Purpose |
+|-----------|---------|
+| `init/` | System initialization |
+| `shell/` | Phone shell |
+| `settings/` | Configuration UI/logic |
+| `netd/` | DHCP, DNS, interface management |
+| `4gd/` | 4G modem daemon |
+
+---
+
+## 📁 Source Layout
+
+SelenyxOS/
+├── kernel/{arch/arm64,mm,sched,fs,drivers,net,ipc,init}/
+├── lxcompat/{include/linux,core,usb,net}/
+├── drivers/{linux/{usb,net},selenyx}/
+├── userspace/{init,shell,settings,netd,4gd}/
+├── tools/
+├── qemu/
+└── docs/
 
 
-The minimal expected specs and recommended specs. (not sure)
+---
 
-UPDATED. AMD INTEL nor NVIDIA or any other chinese x86 cpus will NOT be supported. (not recommended due to drivers as of cpu. some does but it will do very slow works like cpu render.)
-Consider using an official ARM64 CPU. (the allwinner A733 8 core is recommended due to build focusing on this type of cpu.) note the cpu is only for orange pi 4 pro (due to having like idk like zero projects nor community) so if you have a raspberry pi. You have like enough support. only the old one have the x86 support.
+## 🔨 Build (Planned)
 
-# For the raxda users
+```sh
+export CROSS_COMPILE=aarch64-none-elf-
+make defconfig && make -j$(nproc)
+# Output: build/selenyxos.img
 
-It will not be supported even if you have some Radxa Cubie A7A. You can but some drivers wont work.
+prerequisites: AArch64 cross-toolchain, GNU Make, QEMU ≥ 8.0, host USB permissions for passthrough.
 
-# Tutorial on how to install. for older iso (x86) or newer arm 64 in every distro known to mankind (somehow)
+🚀 Boot in QEMU
+Serial-only bring-up
+qemu-system-aarch64 -machine virt,highmem=on -cpu cortex-a72 \
+  -smp 4 -m 2048 -serial mon:stdio -kernel build/selenyxos.img
 
-Any question? Ask me! The ISO is for QEMU purposes only! Please dont install on your pc nor doing it on your pc for fun. Its only for qemu. also serial is needed or else you will only see the uefi screen (tiano core) thats why you cannot use it if you wanna ask.
+Display + USB Host + Virtual USB NIC
 
-qemu code! copy and paste it.
+qemu-system-aarch64 -machine virt,highmem=on -cpu cortex-a72 \
+  -smp 4 -m 2048 -serial mon:stdio -display gtk \
+  -device virtio-gpu-pci \
+  -device qemu-xhci,id=xhci \
+  -device usb-net,bus=xhci.0,netdev=net0 \
+  -netdev user,id=net0 \
+  -kernel build/selenyxos.img
 
-qemu-system-x86_64 \
-  -machine q35 \
-  -m 512M \
-  -display gtk \
-  -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
-  -drive if=pflash,format=raw,file=build/OVMF_VARS.fd \
-  -drive format=raw,file=build/subs.img \
-  -serial stdio \
-  -net none
-
-  if you didnt install qemu? install using this command
-
-  debian ubuntu mint pop os or any other os that uses the same as debian
-  
-  sudo apt update && sudo apt install qemu-system qemu-kvm virt-manager libvirt-daemon-system
-
-  fedora and other based on that
-
-  sudo dnf install @virtualization
-
-rocky linux (for the 3 people that uses this. NO INSULT INTENDED)
-
-  sudo dnf groupinstall "Virtualization Host"
-
-  arch linux or artix and others based on that. (i use arch btw)
-
-  sudo pacman -Syu qemu-full virt-manager libvirt dnsmasq
-
-  opensuse leap and thunderweed 
-
-  sudo zypper in -t pattern kvm_server kvm_tools
-
-  for all the other os that uses there own package
-
-  Alpine Linux: apk add qemu-system-x86_64 qemu-kvm
-  Void Linux: sudo xbps-install -S qemu libvirt virt-manager
-  Solus: sudo eopkg it qemu
-  gentoo: emerge --ask app-emulation/qemu
-  Nix os: installation: Add virtualisation.libvirtd.enable = true; and programs.virt-manager.enable = true; to your configuration.nix file.
-  Steam os: (For all the steam machine users) Installation: Because its file system is locked by default, you have to disable read-only mode (sudo steamos-readonly disable) before using Arch's pacman command to install QEMU.
-  Slackware: command: QEMU is usually available on SlackBuilds. You build it using script files: sbopkg -i qemu
-
-  # for the lfs nerds 
-
-Linux From Scratch (LFS) does not have a package manager, so you must compile QEMU entirely from source code. In the LFS ecosystem, QEMU is documented under the BLFS (Beyond Linux From Scratch) book.1. Prerequisite DependenciesBefore building QEMU, your LFS system must already have GLib, Pixman, and Ninja installed.If you want a graphical interface or audio inside your virtual machines, you should also install SDL2 or GTK+3, and alsa-lib before configuring QEMU.2. Compilation and Installation StepsRun the following commands as a standard user to download, extract, configure, and compile QEMU:bash# Download the official QEMU source archive
-wget https://qemu.org
-tar -xf qemu-10.0.3.tar.xz
-cd qemu-10.0.3
-
- Create an isolated build directory
-mkdir build
-cd build
-
-Configure the build system (Enables KVM acceleration)
-../configure --prefix=/usr \
-             --sysconfdir=/etc \
-             --localstatedir=/var \
-             --docdir=/usr/share/doc/qemu-10.0.3 \
-             --enable-kvm
-
- Compile using all available CPU cores
-make
-Once the compilation completes successfully, switch to the root user to install it:bashsudo make install
-3. Activating Permissions (KVM Group)LFS relies on standard kernel structures. To make sure your user profile can utilize hardware virtualization without typing sudo every time, configure permissions for the KVM device node:bash# Ensure the kvm group exists and append your username
-sudo groupadd -f kvm
-sudo usermod -a -G kvm <your_lfs_username>
-
-okay thats it i dont wanna do more haha
-
-# for bedrock linux
-
-use anything above bro you have everything.
-
-thanks for reading have a fun time!
-
-DFCHOSTING BOT
